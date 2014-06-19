@@ -1,0 +1,116 @@
+<html>
+<head>
+<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha3.js"></script>
+<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/ripemd160.js"></script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="http://procbits.com/media/2013/08/bitcoinjs-min.js"></script>
+<script src="./base32.js"></script>
+<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/core-min.js"></script>
+
+<script type="text/javascript">
+function createaddress() { 
+/* 
+   Create NEM address function
+   Version 0.1 Draft for alpha version addresses
+   2014-06-19 owon DS
+
+   All single step results will be logged to the browser console window for review
+*/
+
+var randArr = new Uint8Array(32); //create a typed array of 32 bytes (256 bits)
+window.crypto.getRandomValues(randArr); //populate array with cryptographically secure random numbers
+
+var privateKeyBytes = [];
+for (var i = 0; i < randArr.length; ++i)
+  privateKeyBytes[i] = randArr[i]
+
+
+// testdata - edit if you would like to test with a specific private key
+// var privateKeyHex = "76a9ea1ea43944614b777ec2109f79eca6983bd7d28926fa499e6b2d1e933b16"
+// var privateKeyBytes = Crypto.util.hexToBytes(privateKeyHex)
+
+// hex string of our private key
+var privateKeyHex = Crypto.util.bytesToHex(privateKeyBytes).toUpperCase();
+console.log("Private Key Hex:" + privateKeyHex); 
+
+// create compressed public key
+var eckey = new Bitcoin.ECKey(privateKeyBytes);
+eckey.compressed = true;
+var publicKeyHexCompressed = Crypto.util.bytesToHex(eckey.getPub());
+console.log("Pub Key compressed Hex:" + publicKeyHexCompressed.toUpperCase());
+var publicKeyBytes = eckey.getPub();
+console.log("Pub Key compressed Bytes:" + publicKeyBytes);
+
+// SHA3
+var words = CryptoJS.enc.Hex.parse(publicKeyHexCompressed);
+var keccakhex = CryptoJS.SHA3(words, { outputLength: 256 }).toString();
+console.log("Public Key SHA3:" + keccakhex.toUpperCase());
+
+// RIPEMD160
+var hash160 = Crypto.RIPEMD160(Crypto.util.hexToBytes(keccakhex));
+console.log("Public Key Hash160(SHA3):" + hash160.toUpperCase()); 
+
+// add version byte
+var version ="98";
+var hashandversion = version.concat(hash160);
+console.log("Version Hex:" + version);
+console.log("HashandVersion:" + hashandversion.toUpperCase());
+
+// create checksum
+var words1 = CryptoJS.enc.Hex.parse(hashandversion);
+var fullChecksum = CryptoJS.SHA3(words1, { outputLength: 256 }).toString();
+var addressChecksum = fullChecksum.substr(0,8);
+console.log("Checksum first 4Bytes of SHA3(HashandVersion):" + addressChecksum.toUpperCase());
+
+// crate unencoded HEX & byte
+var unencodedAddress = hashandversion.concat(addressChecksum);
+console.log("NEM Address unencoded Hex:" + unencodedAddress.toUpperCase());
+
+var address = (Crypto.util.hexToBytes(unencodedAddress));
+console.log("NEM Address unencoded Bytes:" + address);
+
+// base32 encode address
+var b32 = base32.encode(address);
+console.log("NEM Address Base32 encoded:" + b32.toUpperCase());
+
+// output
+var txt_privatekey = document.getElementById('txt_privatekey');
+txt_privatekey.value=privateKeyHex;
+
+var txt_address = document.getElementById('txt_address');
+txt_address.value=b32.toUpperCase();
+
+}
+</script>
+<style type="text/css">
+body { background-color:#42ce7e; font-weight:bold; font-family:Arial; font-size:100%; }
+</style>
+</head>
+<body> 
+<center>
+<h1>Create your own NEM address</h1>
+<br/>
+<img src="./nem.gif" alt="NEM logo">
+<br/>
+<h3>A new economy starts with you!</h3>
+<br/><br/>
+Your NEM address:
+<input type="text" name="txt_address" id="txt_address"  readonly="true" size="45" style="text-align: center;"/> 
+<br/>
+Your private key:
+<input type="text" name="txt_privatekey" id="txt_privatekey" readonly="true" size="64" style="text-align: center;"/>
+<br/><br/>
+<input type="submit" name="button" id="button1" onclick="createaddress()" value="> Generate NEM address <" style="height:50px; width:200px"/>
+<br/><br/><br/><br/>
+<h3>Please note:</h3>
+<br/>
+This website creates NEM addresses and corresponding private keys (see www.ournem.com for more info) usable in the ALPHA version of the NEM community client. The addresses and the format will change in later versions. 
+<br/><br/>
+The address creation software is written in Javascript and runs on your local computer. The private key is generated on your device, no central server will have a copy. Please make sure that the private key is ONLY visable and accessible by you. If a 3rd party gets access to your private key they will be able to spend your funds.
+<br/><br/>
+This program is distributed in the hope that it will be useful, but is provided AS IS with ABSOLUTELY NO WARRANTY. The entire risk as to the quality and performance of the program is with you. In no event will any of the developers, or any other party, be liable to anyone for damages arising out of the use or inability to use the program. 
+<br/><br/>
+Created by NEM community member owon; thanks to gimre for providing the address creation algorithm.
+</center>
+</body
+</html>
