@@ -18,12 +18,12 @@ function createaddress() {
 */
 
 var randArr = new Uint8Array(32); //create a typed array of 32 bytes (256 bits)
-window.crypto.getRandomValues(randArr); //populate array with cryptographically secure random numbers
+// var retVal = window.crypto.getRandomValues(randArr); //populate array with cryptographically secure random numbers (future use not supported by all current browsers)
 
 var privateKeyBytes = [];
 for (var i = 0; i < randArr.length; ++i)
-  privateKeyBytes[i] = randArr[i]
-
+  //privateKeyBytes[i] = randArr[i]
+  privateKeyBytes[i] = (Math.floor(Math.random() * 256));
 
 // testdata - edit if you would like to test with a specific private key
 // var privateKeyHex = "76a9ea1ea43944614b777ec2109f79eca6983bd7d28926fa499e6b2d1e933b16"
